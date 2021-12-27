@@ -664,6 +664,19 @@ defmodule PaginatorTest do
       assert metadata == %Metadata{after: nil, before: nil, limit: 8}
     end
 
+    test "Wrong cursor markers" do
+      query = from(c in Payment, order_by: [asc: c.inserted_at, asc: c.id], select: %{c: c})
+
+      assert %{metadata: %{after: after_cursor}} =
+               Repo.paginate(query, cursor_fields: [inserted_at: :asc, id: :asc], limit: 3)
+      assert %{metadata: %{before: ^after_cursor, after: ^after_cursor}} =
+               Repo.paginate(query,
+                 cursor_fields: [inserted_at: :asc, id: :asc],
+                 after: after_cursor,
+                 limit: 3
+               )
+    end
+
     test "sorts on 2nd level join column with a custom cursor value function", %{
       payments: {_p1, _p2, _p3, _p4, p5, p6, p7, _p8, _p9, _p10, _p11, _p12}
     } do
